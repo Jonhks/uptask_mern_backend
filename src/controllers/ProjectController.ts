@@ -14,6 +14,11 @@ export class ProjectController {
   static createProyect = async (req: Request, res: Response) => {
     // ?forma 1
     const project = new Project(req.body);
+    if (!project) {
+      const error = new Error("Error al guardar el proyecto");
+      res.status(404).json({ error: error.message });
+      return;
+    }
     try {
       //? forma 1
       await project.save();
@@ -51,7 +56,7 @@ export class ProjectController {
       }
       project.projectName = req.body.projectName;
       project.clientName = req.body.clientName;
-      project.description = req.body.descripción;
+      project.description = req.body.description;
       await project.save();
       res.send("Proyecto actualizado");
     } catch (error) {
