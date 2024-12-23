@@ -72,6 +72,7 @@ export class AuthController {
       if (!userExist) {
         const error = new Error("Usuario no encontrado");
         res.status(404).json({ error: error.message });
+        return;
       }
       if (!userExist.confirmed) {
         const token = new Token();
@@ -104,8 +105,122 @@ export class AuthController {
         res.status(404).json({ error: error.message });
         return;
       }
+      res.send("Usuario autenticado!!!");
     } catch (error) {
       res.status(500).json({ error: "Login no valido" });
+    }
+  };
+
+  static confirmationCode = async (req: Request, res: Response) => {
+    try {
+      const { email } = req.body;
+
+      // ? Exista el usuario
+      const user = await User.findOne({ email });
+      if (!user) {
+        const error = new Error("El email no está registrado");
+        res.status(404).json({ error: error.message });
+        return;
+      }
+
+      if (user.confirmed) {
+        const error = new Error("El usuario ya se encuentra confirmado");
+        res.status(403).json({ error: error.message });
+        return;
+      }
+
+      //? Generar nuevo token
+      const token = new Token();
+      token.token = generateSixDigitsToken();
+      token.user = user.id;
+
+      // ? Send email
+      AuthEmail.sendConfirmationMail({
+        email: user.email,
+        name: user.name,
+        token: token.token,
+      });
+
+      await Promise.allSettled([user.save(), token.save()]);
+
+      res.send("Hemos enviado un nuevo token a tu email");
+    } catch (error) {
+      res.status(500).json({ error: "Hubo un error al crear cuenta" });
+    }
+  };
+
+  static forgotPassword = async (req: Request, res: Response) => {
+    try {
+      const { email } = req.body;
+
+      // ? Exista el usuario
+      const user = await User.findOne({ email });
+      if (!user) {
+        const error = new Error("El email no está registrado");
+        res.status(404).json({ error: error.message });
+        return;
+      }
+
+      //? Generar nuevo token
+      const token = new Token();
+      token.token = generateSixDigitsToken();
+      token.user = user.id;
+      await token.save();
+
+      // ? Send email
+      AuthEmail.sendPasswordResetToken({
+        email: user.email,
+        name: user.name,
+        token: token.token,
+      });
+
+      res.send("Revisa tu email para instrucciones");
+    } catch (error) {
+      res.status(500).json({ error: "Hubo un error al crear cuenta" });
+    }
+  };
+
+  static validateToken = async (req: Request, res: Response) => {
+    try {
+      const { token } = req.body;
+
+      const tokenExist = await Token.findOne({ token });
+      if (!tokenExist) {
+        const error = new Error("Token no valido");
+        res.status(404).json({ error: error.message });
+        return;
+      }
+      res.send("Token valido, define tu nuevo password");
+    } catch (error) {
+      res
+        .status(500)
+        .json({ error: "Hubo un error al crear cuenta, token invalido" });
+    }
+  };
+
+  static updatePasswordWithToken = async (req: Request, res: Response) => {
+    try {
+      const { token } = req.params;
+
+      const tokenExist = await Token.findOne({ token });
+      if (!tokenExist) {
+        const error = new Error("Token no valido");
+        res.status(404).json({ error: error.message });
+        return;
+      }
+
+      const user = await User.findById(tokenExist.user);
+
+      const { password } = req.body;
+      user.password = await hashPassword(password);
+
+      await Promise.allSettled([user.save(), tokenExist.deleteOne()]);
+
+      res.send("Password cambiado exitosamente!");
+    } catch (error) {
+      res
+        .status(500)
+        .json({ error: "Hubo un error al crear cuenta, token invalido" });
     }
   };
 }
