@@ -14,6 +14,10 @@ export class ProjectController {
   static createProyect = async (req: Request, res: Response) => {
     // ?forma 1
     const project = new Project(req.body);
+
+    // ?Asignación de manager
+    project.manager = req.user.id;
+
     if (!project) {
       const error = new Error("Error al guardar el proyecto");
       res.status(404).json({ error: error.message });
