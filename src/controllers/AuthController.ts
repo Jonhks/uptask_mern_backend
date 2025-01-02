@@ -226,4 +226,7 @@ export class AuthController {
         .json({ error: "Hubo un error al crear cuenta, token invalido" });
     }
   };
+  static user = async (req: Request, res: Response) => {
+    res.json(req.user);
+  };
 }

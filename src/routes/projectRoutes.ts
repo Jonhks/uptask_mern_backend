@@ -4,13 +4,20 @@ import { ProjectController } from "../controllers/ProjectController";
 import { handleInputErrors } from "../middleware/validations";
 import { TaskController } from "../controllers/TaskController";
 import { projectExist } from "../middleware/project";
-import { taskBelongsToProject, taskExist } from "../middleware/task";
+import {
+  hasAuthorization,
+  taskBelongsToProject,
+  taskExist,
+} from "../middleware/task";
 import { authenticate } from "../middleware/auth";
+import { TeamMemberController } from "../controllers/TeamController";
 const router = Router();
+
+router.use(authenticate);
 
 router.post(
   "/",
-  authenticate,
+  hasAuthorization,
   body("projectName")
     .notEmpty()
     .withMessage("El nombre del Proyecto es Obligatorio"),
@@ -59,6 +66,7 @@ router.delete(
 //? Routes for tasks
 
 router.param("projectId", projectExist);
+
 router.param("taskId", taskExist);
 router.param("taskId", taskBelongsToProject);
 
@@ -88,6 +96,7 @@ router.get(
 
 router.put(
   "/:projectId/tasks/:taskId",
+  hasAuthorization,
   param("taskId").isMongoId().withMessage("Id no valido"),
   body("name").notEmpty().withMessage("El nombre de la Tarea es Obligatorio"),
   body("description")
@@ -100,6 +109,7 @@ router.put(
 
 router.delete(
   "/:projectId/tasks/:taskId",
+  hasAuthorization,
   param("taskId").isMongoId().withMessage("Id no valido"),
   handleInputErrors,
   // projectExist,
@@ -112,6 +122,36 @@ router.post(
   body("status").notEmpty().withMessage("El estado es obligatorio"),
   handleInputErrors,
   TaskController.updateStatusTask
+);
+
+// ? Router for Teams
+
+router.get(
+  "/:projectId/team",
+  // body("id").isMongoId().withMessage("Id no valido"),
+  // handleInputErrors,
+  TeamMemberController.getprojectsMember
+);
+
+router.post(
+  "/:projectId/team/find",
+  body("email").isEmail().toLowerCase().withMessage("E-mail no valido"),
+  handleInputErrors,
+  TeamMemberController.findMemberById
+);
+
+router.post(
+  "/:projectId/team",
+  body("id").isMongoId().withMessage("Id no valido"),
+  handleInputErrors,
+  TeamMemberController.addMemberById
+);
+
+router.delete(
+  "/:projectId/team/:userId",
+  param("userId").isMongoId().withMessage("Id no valido"),
+  handleInputErrors,
+  TeamMemberController.removeMemberById
 );
 
 export default router;
