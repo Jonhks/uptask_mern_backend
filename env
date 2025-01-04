@@ -1,0 +1,10 @@
+DATABASE_URL = mongodb+srv://root:rHRsmDWLaxpeZXCA@cluster0.ehele.mongodb.net/uptask_mern
+
+FRONTEND_URL = http://localhost:5173
+
+SMTP_HOST = sandbox.smtp.mailtrap.io
+SMTP_PORT = 2525
+SMTP_USER = 18c5bd2889b45d
+SMTP_PASSWORD = 8974caf8664249
+
+JWT_SECRET = palabrasupersecreta
