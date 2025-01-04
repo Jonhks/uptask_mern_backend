@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document, Types } from "mongoose";
+import Note from "./Note";
 
 const taskStatus = {
   PENDING: "pending",
@@ -20,6 +21,7 @@ export interface ITask extends Document {
     user: Types.ObjectId;
     status: TaskStatus;
   }[];
+  notes: Types.ObjectId[];
 }
 
 // ? Mongoose
@@ -58,8 +60,27 @@ export const TaskSchema: Schema = new Schema(
         },
       },
     ],
+    notes: [
+      {
+        type: Types.ObjectId,
+        ref: "Note",
+      },
+    ],
   },
   { timestamps: true }
+);
+
+//? Middeleware
+TaskSchema.pre(
+  "deleteOne",
+  {
+    document: true,
+  },
+  async function () {
+    const taskId = this._id;
+    if (!taskId) return;
+    await Note.deleteMany({ task: taskId });
+  }
 );
 
 const Task = mongoose.model<ITask>("Task", TaskSchema);

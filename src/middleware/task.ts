@@ -49,6 +49,8 @@ export const hasAuthorization = (
   res: Response,
   next: NextFunction
 ) => {
+  console.log(req.project);
+
   if (req.user.id.toString() !== req.project.manager.toString()) {
     const error = new Error("Acción no valida");
     res.status(400).json({ error: error.message });

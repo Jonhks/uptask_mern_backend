@@ -11,13 +11,14 @@ import {
 } from "../middleware/task";
 import { authenticate } from "../middleware/auth";
 import { TeamMemberController } from "../controllers/TeamController";
+import { NoteController } from "../controllers/NoteController";
 const router = Router();
 
 router.use(authenticate);
 
 router.post(
   "/",
-  hasAuthorization,
+  // hasAuthorization,
   body("projectName")
     .notEmpty()
     .withMessage("El nombre del Proyecto es Obligatorio"),
@@ -40,9 +41,12 @@ router.get(
   ProjectController.getProjectById
 );
 
+//? Routes for tasks
+router.param("projectId", projectExist);
+
 router.put(
-  "/:id",
-  param("id").isMongoId().withMessage("Id no valido"),
+  "/:projectId",
+  param("projectId").isMongoId().withMessage("Id no valido"),
   body("projectName")
     .notEmpty()
     .withMessage("El nombre del Proyecto es Obligatorio"),
@@ -53,19 +57,17 @@ router.put(
     .notEmpty()
     .withMessage("La descripción del Proyecto es Obligatorio"),
   handleInputErrors,
+  hasAuthorization,
   ProjectController.updateProject
 );
 
 router.delete(
-  "/:id",
-  param("id").isMongoId().withMessage("Id no valido"),
+  "/:projectId",
+  param("projectId").isMongoId().withMessage("Id no valido"),
   handleInputErrors,
+  hasAuthorization,
   ProjectController.deleteProject
 );
-
-//? Routes for tasks
-
-router.param("projectId", projectExist);
 
 router.param("taskId", taskExist);
 router.param("taskId", taskBelongsToProject);
@@ -152,6 +154,26 @@ router.delete(
   param("userId").isMongoId().withMessage("Id no valido"),
   handleInputErrors,
   TeamMemberController.removeMemberById
+);
+
+// ? Routes for Notes
+
+router.post(
+  "/:projectId/tasks/:taskId/notes",
+  body("content")
+    .notEmpty()
+    .withMessage("El contenido de la nota es obligatorio"),
+  handleInputErrors,
+  NoteController.createNote
+);
+
+router.get("/:projectId/tasks/:taskId/notes", NoteController.getTaskNotes);
+
+router.delete(
+  "/:projectId/tasks/:taskId/notes/:noteId",
+  param("noteId").isMongoId().withMessage("Id no valido"),
+  handleInputErrors,
+  NoteController.deleteNote
 );
 
 export default router;
