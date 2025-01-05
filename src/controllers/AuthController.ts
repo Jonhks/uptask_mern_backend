@@ -3,8 +3,8 @@ import User from "../models/User";
 import { checkPassword, hashPassword } from "../utils/auth";
 import Token from "../models/Token";
 import { generateSixDigitsToken } from "../utils/token";
-import { AuthEmail } from "../emails/AuthEmail";
 import { generateJWT } from "../utils/jwt";
+import { AuthEmailResend } from "../emails/AuthEmailsResend";
 export class AuthController {
   static createAccount = async (req: Request, res: Response) => {
     try {
@@ -30,7 +30,7 @@ export class AuthController {
       token.user = user.id;
 
       // ? Send email
-      AuthEmail.sendConfirmationMail({
+      AuthEmailResend.sendConfirmationMailResend({
         email: user.email,
         name: user.name,
         token: token.token,
@@ -84,7 +84,7 @@ export class AuthController {
         await token.save();
 
         // ? Send email con nuevo token
-        AuthEmail.sendConfirmationMail({
+        AuthEmailResend.sendConfirmationMailResend({
           email: userExist.email,
           name: userExist.name,
           token: token.token,
@@ -141,7 +141,7 @@ export class AuthController {
       token.user = user.id;
 
       // ? Send email
-      AuthEmail.sendConfirmationMail({
+      AuthEmailResend.sendConfirmationMailResend({
         email: user.email,
         name: user.name,
         token: token.token,
@@ -175,11 +175,11 @@ export class AuthController {
       await token.save();
 
       // ? Send email
-      AuthEmail.sendPasswordResetToken({
-        email: user.email,
-        name: user.name,
-        token: token.token,
-      });
+      // AuthEmailResend.sendPasswordResetTokenResend({
+      //   email: user.email,
+      //   name: user.name,
+      //   token: token.token,
+      // });
 
       res.send("Revisa tu email para instrucciones");
     } catch (error) {
