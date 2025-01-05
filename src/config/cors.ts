@@ -39,8 +39,6 @@ export const corsConfig: CorsOptions = {
     if (process.argv[2] === "--api") {
       whiteList.push(undefined); // Permitir solicitudes sin origen (por ejemplo, desde Postman)
     }
-    console.log("Origin:", origin);
-    console.log("WhiteList:", whiteList);
     if (whiteList.includes(origin) || !origin) {
       // Permitir solicitudes sin origen
       callback(null, true);
